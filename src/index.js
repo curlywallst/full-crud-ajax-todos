@@ -47,7 +47,6 @@ function addPokemonListeners(){
     poke.querySelector('form.pokemon-update').addEventListener('submit', (event) => {
       event.preventDefault()
 
-      debugger
       updatePoke(poke)
     })
   })
