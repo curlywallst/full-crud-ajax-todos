@@ -34,6 +34,15 @@ function renderPokemon(pokemon){
   })
 }
 
+function showPoke(id){
+  const container = document.getElementById('pokemon-container')
+  container.innerHTML = ""
+  fetch(`http://localhost:3000/pokemon/${id}`)
+  .then((response) => response.json())
+  .then ((jsonData) => {
+    renderPokemon(jsonData)
+  })
+}
 
 function addPokemonListeners(){
   let pokemon = document.querySelectorAll('.pokemon-card')
@@ -45,20 +54,9 @@ function addPokemonListeners(){
       removePoke(poke.querySelector('img').dataset.id)
     })
     poke.querySelector('form.pokemon-update').addEventListener('submit', (event) => {
-      event.preventDefault()
-
+      event.preventDefault();
       updatePoke(poke)
     })
-  })
-}
-
-function showPoke(id){
-  const container = document.getElementById('pokemon-container')
-  container.innerHTML = ""
-  fetch(`http://localhost:3000/pokemon/${id}`)
-  .then((response) => response.json())
-  .then ((jsonData) => {
-    renderPokemon(jsonData)
   })
 }
 
@@ -66,7 +64,7 @@ function updatePoke(poke){
   let pokeId = parseInt(poke.querySelector('img').dataset.id)
 
   const pokemon = {
-    id: parseInt(pokeId),
+    id: pokeId,
     name: poke.querySelector('form.pokemon-update').querySelector("input").value
   }
   const container = document.getElementById('pokemon-container')
@@ -74,13 +72,13 @@ function updatePoke(poke){
   fetch(`http://localhost:3000/pokemon/${parseInt(pokeId)}`, {
     method: "PATCH",
     headers: {
-      'Content-Type': 'application.json',
-      'Accept': 'application.json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     },
     body: JSON.stringify(pokemon)
   })
   .then((response) => response.json())
-  .then(fetchAllPokemon)
+  .then((data) => console.log(data))
   .catch(function(error){
     console.log(error.messages)
   })
