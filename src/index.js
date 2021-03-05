@@ -1,85 +1,74 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const pokemonAddForm = document.querySelector("form")
-  pokemonAddForm.addEventListener("submit", addPokemon)
-  fetchAllPokemon()
+window.addEventListener("DOMContentLoaded", () => {
+  fetchTodos()
+  document.querySelector('#new-todo').addEventListener('submit', addTodo)
 })
 
-function addPokemon(e){
-  e.preventDefault()
-  debugger;
-}
-
-function fetchAllPokemon() {
-  fetch("http://localhost:3000/pokemon")
-  .then((response) => response.json())
-  .then((jsonData) => {
-    const pokemonContainer = document.querySelector("#pokemon-container")
-    pokemonContainer.innerHTML = renderAllPokemon(jsonData)
-    addPokemonListeners()
+function fetchTodos() {
+  fetch('http://localhost:3000/todos')
+  .then(resp => resp.json())
+  .then(data => {
+    const todosContainer = document.querySelector("#todos-container")
+    todosContainer.innerHTML = renderAllTodos(data)
+    addTodoListeners()
   })
 }
 
+function addTodoListeners() {
+  let todos = document.querySelector('#todos-container')
+  todos.addEventListener('click', deleteTodo)
+  // todos.forEach((todo) => {
+  //   todo.querySelector(".todo-delete-button").addEventListener('click', () => deleteTodo(todo))
+  // })
+}
 
-function renderPokemon(pokemon){
-  let pokemonCard = document.createElement('div')
-  pokemonCard.innerHTML += `
-    <div class='card' id='${pokemon.id}'>
-      <h2>${pokemon.name}</h2>
-      <img src="${pokemon.sprites.front}"/>
+function renderAllTodos(todosArray) {
+  return todosArray.map(renderSingleTodo).join('')
+}
+
+function renderSingleTodo(todo) {
+  return (`
+  <div class="todo-card" id="${todo.id}">
+    <div class="todo-frame">
+      <h1 class="center-text">${todo.content}</h1>
+      <button data-action="delete" class="todo-delete-button" id="${todo.id}">Delete</button><br>
     </div>
-  `
-  document.getElementById("pokemon-container").appendChild(pokemonCard)
-  pokemonCard.addEventListener('click', (event) => {
-    showPoke(pokemon.id)
-  })
+  </div>`)
 }
 
-function showPoke(id){
-  const container = document.getElementById('pokemon-container')
-  container.innerHTML = ""
-  fetch(`http://localhost:3000/pokemon/${id}`)
-  .then((response) => response.json())
-  .then ((jsonData) => {
-    renderPokemon(jsonData)
-  })
-}
-
-function addPokemonListeners(){
-  let pokemon = document.querySelectorAll('.pokemon-card')
-  pokemon.forEach((poke) => {
-    poke.querySelector('img').addEventListener('click', (event) => {
-      showPoke(poke.querySelector('img').dataset.id)
-    })
-    poke.querySelector('.pokemon-delete-button').addEventListener('click', () => {
-      removePoke(poke.querySelector('img').dataset.id)
-    })
-    poke.querySelector('form.pokemon-update').addEventListener('submit', (event) => {
-      event.preventDefault();
-      updatePoke(poke)
-    })
-  })
-}
-
-function updatePoke(poke){
-  let pokeId = parseInt(poke.querySelector('img').dataset.id)
-
-  const pokemon = {
-    id: pokeId,
-    name: poke.querySelector('form.pokemon-update').querySelector("input").value
+function addTodo(event) {
+  event.preventDefault()
+  const todo = {
+    content: document.querySelector("#content").value
   }
-  const container = document.getElementById('pokemon-container')
-  container.innerHTML = ""
-  fetch(`http://localhost:3000/pokemon/${parseInt(pokeId)}`, {
-    method: "PATCH",
+  fetch('http://localhost:3000/todos', {
+    method: "POST",
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify(pokemon)
+    body: JSON.stringify(todo)
   })
-  .then((response) => response.json())
-  .then((data) => console.log(data))
-  .catch(function(error){
-    console.log(error.messages)
+  .then(resp => resp.json())
+  .then(data => {
+    const todosContainer = document.querySelector("#todos-container")
+    todosContainer.innerHTML += renderSingleTodo(data)
+    addTodoListeners()
+    document.querySelector("#content").value = ""
   })
+
 }
+
+function deleteTodo(event) {
+  fetch(`http://localhost:3000/todos/${event.target.id}`, {
+    method: "DELETE",
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  })
+  const todoNode = event.target.parentElement.parentElement
+  document.querySelector("#todos-container").removeChild(todoNode)
+}
+
+
+
